@@ -1,18 +1,15 @@
 import { useLayoutEffect, useState } from "react";
 import rough from "roughjs/bundled/rough.esm";
+import { isWithinElement } from "../functions/isWithinElement";
 
 const generator = rough.generator();
 
-function createElement(x1, y1, x2, y2, tool) {
+function createElement(id, x1, y1, x2, y2, tool) {
   const roughElement =
     tool === "Line"
       ? generator.line(x1, y1, x2, y2)
       : generator.rectangle(x1, y1, x2 - x1, y2 - y1);
-  return { x1, y1, x2, y2, tool, roughElement };
-}
-
-function isWithinElement(x, y, element) {
-  const { tool } = element;
+  return { id, x1, y1, x2, y2, tool, roughElement };
 }
 
 function getElementAtPosition(x, y, elements) {
@@ -23,8 +20,15 @@ function App() {
   const [elements, setElements] = useState([]);
   const [action, setAction] = useState("none");
   const [tool, setTool] = useState("Line");
+  const [selectedElement, setSelectedElement] = useState(null);
 
-  console.log(elements);
+  function updateElement(id, x1, y1, x2, y2, tool) {
+    const updatedElement = createElement(id, x1, y1, x2, y2, tool);
+
+    const elementsCopy = [...elements];
+    elementsCopy[id] = updatedElement;
+    setElements(elementsCopy);
+  }
 
   useLayoutEffect(() => {
     const canvas = document.getElementById("canvas");
@@ -40,8 +44,22 @@ function App() {
     const { clientX, clientY } = event;
     if (tool === "Selection") {
       const element = getElementAtPosition(clientX, clientY, elements);
+      if (element) {
+        const offestX = clientX - element.x1;
+        const offsetY = clientY - element.y1;
+        setSelectedElement({ ...element, offestX, offsetY });
+        setAction("moving");
+      }
     } else {
-      const element = createElement(clientX, clientY, clientX, clientY, tool);
+      const id = elements.length;
+      const element = createElement(
+        id,
+        clientX,
+        clientY,
+        clientX,
+        clientY,
+        tool
+      );
 
       setElements((prev) => [...prev, element]);
       setAction("drawing");
@@ -49,20 +67,24 @@ function App() {
   };
 
   const handleMouseMove = (event) => {
+    const { clientX, clientY } = event;
     if (action === "drawing") {
-      const { clientX, clientY } = event;
       const index = elements.length - 1;
       const { x1, y1 } = elements[index];
-      const updatedElement = createElement(x1, y1, clientX, clientY, tool);
-
-      const elementsCopy = [...elements];
-      elementsCopy[index] = updatedElement;
-      setElements(elementsCopy);
+      updateElement(index, x1, y1, clientX, clientY, tool);
+    } else if (action === "moving") {
+      const { id, x1, y1, x2, y2, tool, offestX, offsetY } = selectedElement;
+      const width = x2 - x1;
+      const height = y2 - y1;
+      const newX1 = clientX - offestX;
+      const newY1 = clientY - offsetY;
+      updateElement(id, newX1, newY1, newX1 + width, newY1 + height, tool);
     }
   };
 
   const handleMouseUp = () => {
     setAction("none");
+    setSelectedElement(null);
   };
 
   return (
@@ -70,7 +92,7 @@ function App() {
       <input
         onChange={() => setTool("Selection")}
         type="radio"
-        checked={tool === "selection"}
+        checked={tool === "Selection"}
       />
       <label>Selection</label>
       <input
