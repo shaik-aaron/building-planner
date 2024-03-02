@@ -1,3 +1,4 @@
+
 # Building Planner
 
 Building Planner is a web application for drawing and planning architectural elements. This project is built with Vite.
@@ -20,17 +21,21 @@ Before you begin, make sure you have Node.js and npm installed on your machine.
    ```bash
    git clone https://github.com/shaik-aaron/building-planner.git
 
-2. Navigate to the project Directory: 
-
-  ```bash
-  cd building-planner
-
-3. Install the necessary packages:
+2. Navigate to the repository:
 
    ```bash
-   npm install
+   cd building-planner
 
-4. To run the application:
+3. To run the server:
 
-  ```bash
-  npm run dev
+   ```bash
+   npm run dev
+
+4. To buld the app:
+
+   ```bash
+   npm run build
+  
+
+
+
