@@ -2,6 +2,8 @@ import { useLayoutEffect, useState } from "react";
 import rough from "roughjs/bundled/rough.esm";
 import { isWithinElement } from "../functions/isWithinElement";
 
+import "./App.css";
+
 const generator = rough.generator();
 
 function createElement(id, x1, y1, x2, y2, tool) {
@@ -40,6 +42,17 @@ function App() {
     elements.forEach((element) => roughtCanvas.draw(element.roughElement));
   }, [elements]);
 
+  function handleDelete(event) {
+    const { clientX, clientY } = event;
+    if (tool === "Delete") {
+      const element = getElementAtPosition(clientX, clientY, elements);
+      function check(obj) {
+        return obj !== element;
+      }
+      setElements(elements.filter(check));
+    }
+  }
+
   const handleMouseDown = (event) => {
     const { clientX, clientY } = event;
     if (tool === "Selection") {
@@ -68,6 +81,24 @@ function App() {
 
   const handleMouseMove = (event) => {
     const { clientX, clientY } = event;
+    if (tool === "Selection") {
+      event.target.style.cursor = getElementAtPosition(
+        clientX,
+        clientY,
+        elements
+      )
+        ? "move"
+        : "default";
+    }
+    if (tool === "Delete") {
+      event.target.style.cursor = getElementAtPosition(
+        clientX,
+        clientY,
+        elements
+      )
+        ? "pointer"
+        : "default";
+    }
     if (action === "drawing") {
       const index = elements.length - 1;
       const { x1, y1 } = elements[index];
@@ -89,24 +120,35 @@ function App() {
 
   return (
     <div>
-      <input
-        onChange={() => setTool("Selection")}
-        type="radio"
-        checked={tool === "Selection"}
-      />
-      <label>Selection</label>
-      <input
-        onChange={() => setTool("Line")}
-        type="radio"
-        checked={tool === "Line"}
-      />
-      <label>Line</label>
-      <input
-        onChange={() => setTool("Rectangle")}
-        type="radio"
-        checked={tool === "Rectangle"}
-      />
-      <label>Rectangle</label>
+      <div style={{ position: "absolute" }}>
+        <h2>Building Planner</h2>
+        <div className="buttons-container">
+          <button
+            className={tool === "Selection" ? "button-selected" : ""}
+            onClick={() => setTool("Selection")}
+          >
+            Selection
+          </button>
+          <button
+            className={tool === "Line" ? "button-selected" : ""}
+            onClick={() => setTool("Line")}
+          >
+            Line
+          </button>
+          <button
+            className={tool === "Rectangle" ? "button-selected" : ""}
+            onClick={() => setTool("Rectangle")}
+          >
+            Rectangle
+          </button>
+          <button
+            className={tool === "Delete" ? "button-selected" : ""}
+            onClick={() => setTool("Delete")}
+          >
+            Delete
+          </button>
+        </div>
+      </div>
       <canvas
         id="canvas"
         width={window.innerWidth}
@@ -114,6 +156,7 @@ function App() {
         onMouseDown={handleMouseDown}
         onMouseMove={handleMouseMove}
         onMouseUp={handleMouseUp}
+        onClick={handleDelete}
       />
     </div>
   );

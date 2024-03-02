@@ -1,0 +1,27 @@
+@import url("https://fonts.googleapis.com/css2?family=Anta&display=swap");
+
+* {
+  margin: 0;
+}
+
+h2 {
+  font-family: "Anta";
+  padding-left: 12px;
+  padding-top: 12px;
+}
+
+.buttons-container {
+  display: flex;
+  padding-left: 12px;
+  padding-top: 12px;
+}
+
+button {
+  font-family: "Anta";
+  font-size: 16px;
+}
+
+.button-selected {
+  background-color: darkred;
+  color: white;
+}
