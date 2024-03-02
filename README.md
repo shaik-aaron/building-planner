@@ -20,12 +20,17 @@ Before you begin, make sure you have Node.js and npm installed on your machine.
    ```bash
    git clone https://github.com/shaik-aaron/building-planner.git
 
-2. Install the necessary packages:
+2. Navigate to the project Directory: 
+
+  ```bash
+  cd building-planner
+
+3. Install the necessary packages:
 
    ```bash
    npm install
 
-3. To run the application:
+4. To run the application:
 
   ```bash
   npm run dev
