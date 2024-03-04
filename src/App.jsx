@@ -7,11 +7,15 @@ import "./App.css";
 const generator = rough.generator();
 
 function createElement(id, x1, y1, x2, y2, tool) {
+  const width = Math.abs(x2 - x1);
+  const height = Math.abs(y2 - y1);
+
   const roughElement =
     tool === "Line"
       ? generator.line(x1, y1, x2, y2)
-      : generator.rectangle(x1, y1, x2 - x1, y2 - y1);
-  return { id, x1, y1, x2, y2, tool, roughElement };
+      : generator.rectangle(x1, y1, x2 - x1, y2 - y1, { roughness: 0.5 });
+
+  return { id, x1, y1, x2, y2, tool, roughElement, width, height };
 }
 
 function getElementAtPosition(x, y, elements) {
@@ -39,7 +43,20 @@ function App() {
     ctx.clearRect(0, 0, canvas.width, canvas.height);
 
     const roughtCanvas = rough.canvas(canvas);
-    elements.forEach((element) => roughtCanvas.draw(element.roughElement));
+    elements.forEach((element) => {
+      roughtCanvas.draw(element.roughElement);
+
+      // Display dimensions for rectangles
+      if (element.tool === "Rectangle") {
+        ctx.fillStyle = "black";
+        ctx.font = "12px Arial";
+        ctx.fillText(
+          `W: ${element.width.toFixed(2)}, H: ${element.height.toFixed(2)}`,
+          element.x1 + 5,
+          element.y2 - 5
+        );
+      }
+    });
   }, [elements]);
 
   function handleDelete(event) {
