@@ -1,6 +1,5 @@
 import React, { useState, useEffect, useLayoutEffect } from "react";
 import rough from "roughjs/bundled/rough.esm";
-import { isWithinElement } from "../functions/isWithinElement";
 import { cursorForPosition } from "../functions/cursorForPosition";
 import "./App.css";
 import {
@@ -11,6 +10,8 @@ import {
 import { auth, db } from "../firebase/firebase";
 import resizedCoordinates from "../functions/resizedCoordinates";
 import { doc, getDoc, setDoc } from "firebase/firestore";
+import { adjustElementCoordinates } from "../functions/adjustElementCoordinates";
+import { getElementAtPosition } from "../functions/getElementAtPosition";
 
 const generator = rough.generator();
 
@@ -24,32 +25,6 @@ function createElement(id, x1, y1, x2, y2, tool) {
       : generator.rectangle(x1, y1, x2 - x1, y2 - y1, { roughness: 0.5 });
 
   return { id, x1, y1, x2, y2, tool, roughElement, width, height };
-}
-
-function getElementAtPosition(x, y, elements) {
-  return elements
-    .map((element) => ({
-      ...element,
-      position: isWithinElement(x, y, element),
-    }))
-    .find((element) => element.position !== null);
-}
-
-function adjustElementCoordinates(element) {
-  const { tool, x1, y1, x2, y2 } = element;
-  if (tool === "Rectangle") {
-    const minX = Math.min(x1, x2);
-    const maxX = Math.max(x1, x2);
-    const minY = Math.min(y1, y2);
-    const maxY = Math.max(y1, y2);
-    return { x1: minX, y1: minY, x2: maxX, y2: maxY };
-  } else {
-    if (x1 < x2 || (x1 === x2 && y1 < y2)) {
-      return { x1, y1, x2, y2 };
-    } else {
-      return { x1: x2, y1: y2, x2: x1, y2: y1 };
-    }
-  }
 }
 
 function App() {
