@@ -2,8 +2,15 @@ import React, { useState, useEffect, useLayoutEffect } from "react";
 import rough from "roughjs/bundled/rough.esm";
 import { isWithinElement } from "../functions/isWithinElement";
 import { cursorForPosition } from "../functions/cursorForPosition";
-
 import "./App.css";
+import {
+  GoogleAuthProvider,
+  onAuthStateChanged,
+  signInWithPopup,
+} from "firebase/auth";
+import { auth, db } from "../firebase/firebase";
+import resizedCoordinates from "../functions/resizedCoordinates";
+import { doc, getDoc, setDoc } from "firebase/firestore";
 
 const generator = rough.generator();
 
@@ -45,24 +52,6 @@ function adjustElementCoordinates(element) {
   }
 }
 
-function resizedCoordinates(clientX, clientY, position, coordinates) {
-  const { x1, y1, x2, y2 } = coordinates;
-  switch (position) {
-    case "tl":
-    case "start":
-      return { x1: clientX, y1: clientY, x2, y2 };
-    case "tr":
-      return { x1, y1: clientY, x2: clientX, y2 };
-    case "bl":
-      return { x1: clientX, y1, x2, y2: clientY };
-    case "br":
-    case "end":
-      return { x1, y1, x2: clientX, y2: clientY };
-    default:
-      return null;
-  }
-}
-
 function App() {
   const [drawings, setDrawings] = useState([{ elements: [] }]);
   const [currentDrawingIndex, setCurrentDrawingIndex] = useState(0);
@@ -70,8 +59,45 @@ function App() {
   const [action, setAction] = useState("none");
   const [tool, setTool] = useState("Line");
   const [selectedElement, setSelectedElement] = useState(null);
+  const [save, setSave] = useState("Save");
+  const [user, setUser] = useState("");
 
-  console.log(currentDrawing.elements);
+  async function saveDrawings() {
+    setSave("Saving...");
+    const serializedDrawings = drawings.map((drawing) => ({
+      elements: drawing.elements.map((element) => ({
+        ...element,
+        roughElement: JSON.stringify(element.roughElement),
+      })),
+    }));
+    if (user.uid) {
+      const userPlansRef = doc(db, "user_plans", user.uid);
+      await setDoc(userPlansRef, {
+        drawings: serializedDrawings || null,
+      });
+      setSave("Save");
+      alert("Saved");
+    }
+  }
+
+  async function readDrawings() {
+    const userPlansRef = doc(db, "user_plans", user.uid);
+    const userPlansSnapshot = await getDoc(userPlansRef);
+    const temp = userPlansSnapshot.data();
+    const deserializedDrawings = temp.drawings.map((drawing) => ({
+      elements: drawing.elements.map((element) => ({
+        ...element,
+        roughElement: JSON.parse(element.roughElement),
+      })),
+    }));
+    setDrawings(deserializedDrawings);
+  }
+
+  useLayoutEffect(() => {
+    if (user) {
+      readDrawings();
+    }
+  }, [user]);
 
   useLayoutEffect(() => {
     const canvas = document.getElementById("canvas");
@@ -83,7 +109,6 @@ function App() {
     currentDrawing.elements.forEach((element) => {
       roughtCanvas.draw(element.roughElement);
 
-      // Display dimensions for rectangles
       if (element.tool === "Rectangle") {
         ctx.fillStyle = "black";
         ctx.font = "12px Arial";
@@ -110,15 +135,20 @@ function App() {
   function handleDelete(event) {
     const { clientX, clientY } = event;
     if (tool === "Delete") {
-      const element = getElementAtPosition(
+      const elementToDelete = getElementAtPosition(
         clientX,
         clientY,
         currentDrawing.elements
       );
-      function check(obj) {
-        return obj !== element;
+      if (elementToDelete.position === "inside") {
+        delete elementToDelete.position;
+        updateDrawing(
+          "elements",
+          currentDrawing.elements.filter(
+            (element) => element.id !== elementToDelete.id
+          )
+        );
       }
-      updateDrawing("elements", currentDrawing.elements.filter(check));
     }
   }
 
@@ -149,7 +179,7 @@ function App() {
           setAction("resize");
         }
       }
-    } else {
+    } else if (tool !== "Delete") {
       const id = currentDrawing.elements.length;
       const element = createElement(
         id,
@@ -190,14 +220,7 @@ function App() {
       const index = currentDrawing.elements.length - 1;
       const { x1, y1 } = currentDrawing.elements[index];
       updateElement(index, x1, y1, clientX, clientY, tool);
-    }
-
-    // Add the rest of your handle
-    // ...
-
-    // Add the rest of your handleMouseMove logic here
-    // ...
-    else if (action === "moving") {
+    } else if (action === "moving") {
       const { id, x1, y1, x2, y2, tool, offestX, offsetY } = selectedElement;
       const width = x2 - x1;
       const height = y2 - y1;
@@ -238,10 +261,46 @@ function App() {
     setCurrentDrawingIndex(index);
   };
 
+  async function googleSignIn() {
+    const provider = await new GoogleAuthProvider();
+    return signInWithPopup(auth, provider);
+  }
+
+  useEffect(() => {
+    onAuthStateChanged(auth, (user) => {
+      if (user) {
+        setUser(user);
+      }
+    });
+  }, [user]);
+
   return (
     <div>
       <div className="tab-bar">
-        <h2>Log in</h2>
+        {user === "" ? (
+          <h2
+            onClick={googleSignIn}
+            style={{ color: "white", marginBottom: 8 }}
+          >
+            Sign in
+          </h2>
+        ) : (
+          <h2 style={{ color: "white", marginBottom: 8, padding: 20 }}>
+            {user.displayName}
+          </h2>
+        )}
+        <h3
+          onClick={saveDrawings}
+          style={{
+            color: "white",
+            marginBottom: 8,
+            padding: 12,
+            fontFamily: "Anta",
+            cursor: "pointer",
+          }}
+        >
+          {save}
+        </h3>
         {drawings.map((drawing, index) => (
           <div
             key={index}

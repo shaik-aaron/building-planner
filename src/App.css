@@ -8,6 +8,7 @@ h2 {
   font-family: "Anta";
   padding-left: 12px;
   padding-top: 12px;
+  cursor: pointer;
 }
 
 .tab-bar {
@@ -18,6 +19,7 @@ h2 {
   display: flex;
   flex-direction: column;
   gap: 12px;
+  width: auto;
 }
 
 .tab-selected {
