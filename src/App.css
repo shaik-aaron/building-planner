@@ -10,6 +10,40 @@ h2 {
   padding-top: 12px;
 }
 
+.tab-bar {
+  position: absolute;
+  right: 0;
+  height: 100%;
+  background-color: darkred;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.tab-selected {
+  font-family: "Anta";
+  color: white;
+  background-color: red;
+  padding: 20px;
+  text-align: center;
+}
+
+.tab-unselected {
+  font-family: "Anta";
+  color: white;
+  padding: 20px;
+  text-align: center;
+  cursor: pointer;
+}
+
+.new {
+  font-family: "Anta";
+  color: white;
+  padding: 20px;
+  text-align: center;
+  cursor: pointer;
+}
+
 .buttons-container {
   display: flex;
   padding-left: 12px;
