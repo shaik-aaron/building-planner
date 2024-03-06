@@ -68,6 +68,14 @@ function App() {
     setDrawings(deserializedDrawings);
   }
 
+  useEffect(() => {
+    onAuthStateChanged(auth, (user) => {
+      if (user) {
+        setUser(user);
+      }
+    });
+  }, [user]);
+
   useLayoutEffect(() => {
     if (user) {
       readDrawings();
@@ -240,14 +248,6 @@ function App() {
     const provider = await new GoogleAuthProvider();
     return signInWithPopup(auth, provider);
   }
-
-  useEffect(() => {
-    onAuthStateChanged(auth, (user) => {
-      if (user) {
-        setUser(user);
-      }
-    });
-  }, [user]);
 
   return (
     <div>
