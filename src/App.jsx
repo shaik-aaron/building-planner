@@ -37,6 +37,8 @@ function App() {
   const [save, setSave] = useState("Save");
   const [user, setUser] = useState("");
 
+  //functions to read/save drawings
+
   async function saveDrawings() {
     setSave("Saving...");
     const serializedDrawings = drawings.map((drawing) => ({
@@ -67,6 +69,15 @@ function App() {
     }));
     setDrawings(deserializedDrawings);
   }
+
+  //sign in
+
+  async function googleSignIn() {
+    const provider = await new GoogleAuthProvider();
+    return signInWithPopup(auth, provider);
+  }
+
+  //Lifecycle functions
 
   useEffect(() => {
     onAuthStateChanged(auth, (user) => {
@@ -104,6 +115,8 @@ function App() {
     });
   }, [currentDrawing]);
 
+  //function to update Element
+
   function updateElement(id, x1, y1, x2, y2, tool) {
     const updatedElement = createElement(id, x1, y1, x2, y2, tool);
 
@@ -114,6 +127,19 @@ function App() {
     drawingsCopy[currentDrawingIndex] = { elements: elementsCopy };
     setDrawings(drawingsCopy);
   }
+
+  //funcion to update plan
+
+  function updateDrawing(key, value) {
+    const drawingsCopy = [...drawings];
+    drawingsCopy[currentDrawingIndex] = {
+      ...drawings[currentDrawingIndex],
+      [key]: value,
+    };
+    setDrawings(drawingsCopy);
+  }
+
+  //mouse events
 
   function handleDelete(event) {
     const { clientX, clientY } = event;
@@ -133,15 +159,6 @@ function App() {
         );
       }
     }
-  }
-
-  function updateDrawing(key, value) {
-    const drawingsCopy = [...drawings];
-    drawingsCopy[currentDrawingIndex] = {
-      ...drawings[currentDrawingIndex],
-      [key]: value,
-    };
-    setDrawings(drawingsCopy);
   }
 
   const handleMouseDown = (event) => {
@@ -243,11 +260,6 @@ function App() {
   const switchDrawing = (index) => {
     setCurrentDrawingIndex(index);
   };
-
-  async function googleSignIn() {
-    const provider = await new GoogleAuthProvider();
-    return signInWithPopup(auth, provider);
-  }
 
   return (
     <div>
