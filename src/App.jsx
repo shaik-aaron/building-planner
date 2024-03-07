@@ -40,20 +40,22 @@ function App() {
   //functions to read/save drawings
 
   async function saveDrawings() {
-    setSave("Saving...");
-    const serializedDrawings = drawings.map((drawing) => ({
-      elements: drawing.elements.map((element) => ({
-        ...element,
-        roughElement: JSON.stringify(element.roughElement),
-      })),
-    }));
-    if (user.uid) {
-      const userPlansRef = doc(db, "user_plans", user.uid);
-      await setDoc(userPlansRef, {
-        drawings: serializedDrawings || null,
-      });
-      setSave("Save");
-      alert("Saved");
+    if (user !== "") {
+      setSave("Saving...");
+      const serializedDrawings = drawings.map((drawing) => ({
+        elements: drawing.elements.map((element) => ({
+          ...element,
+          roughElement: JSON.stringify(element.roughElement),
+        })),
+      }));
+      if (user.uid) {
+        const userPlansRef = doc(db, "user_plans", user.uid);
+        await setDoc(userPlansRef, {
+          drawings: serializedDrawings || null,
+        });
+        setSave("Save");
+        alert("Saved");
+      }
     }
   }
 
